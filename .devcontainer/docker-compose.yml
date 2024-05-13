@@ -1,0 +1,17 @@
+services:
+  paranoia:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    # gem 'sqlite3' which is necessary for paranoia tests,
+    # does not support ruby 2.7 on arm
+    platform: linux/x86_64
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+      - bundle-volume:/usr/local/bundle
+    env_file: devcontainer.env
+
+
+volumes:
+  bundle-volume:
