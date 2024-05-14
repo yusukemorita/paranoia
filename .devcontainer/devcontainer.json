@@ -2,5 +2,5 @@
   "name": "paranoia",
   "dockerComposeFile": "./docker-compose.yml",
   "service": "paranoia",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspace"
 }
