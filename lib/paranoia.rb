@@ -31,18 +31,28 @@ module Paranoia
       all.tap { |x| x.default_scoped = false }
     end
 
+    # TODO: test properly
     def only_deleted
-      # TODO: handle nil here
-      if paranoia_sentinel_values.include?(nil)
-        return with_deleted.where.not(paranoia_column => paranoia_sentinel_value)
+      # CASE 1. when `paranoia_sentinel_values` is only nil 
+      if paranoia_sentinel_values.length == 1 && paranoia_sentinel_values.first.nil?
+        return with_deleted.where.not(paranoia_column => nil)
       end
-      # if paranoia_sentinel_value is not null, then it is possible that
+
+      # CASE 2. when there are multiple `paranoia_sentinel_values`, of which one is nil 
+      if paranoia_sentinel_values.include?(nil)
+        # TODO
+        return with_deleted.where.not(paranoia_column => paranoia_sentinel_values)
+      end
+
+      # CASE 3. when `paranoia_sentinel_values` does not include nil 
+      # if paranoia_sentinel_values does not include null, then it is possible that
       # some deleted rows will hold a null value in the paranoia column
       # these will not match != sentinel value because "NULL != value" is
       # NULL under the sql standard
       # Scoping with the table_name is mandatory to avoid ambiguous errors when joining tables.
       scoped_quoted_paranoia_column = "#{connection.quote_table_name(self.table_name)}.#{connection.quote_column_name(paranoia_column)}"
-      with_deleted.where("#{scoped_quoted_paranoia_column} IS NULL OR #{scoped_quoted_paranoia_column} != ?", paranoia_sentinel_value)
+      # TODO: compare other values as well
+      with_deleted.where("#{scoped_quoted_paranoia_column} IS NULL OR #{scoped_quoted_paranoia_column} NOT IN (?)", paranoia_sentinel_values)
     end
     alias_method :deleted, :only_deleted
 
@@ -112,7 +122,7 @@ module Paranoia
         noop_if_frozen = ActiveRecord.version < Gem::Version.new("4.1")
         if within_recovery_window?(recovery_window_range) && ((noop_if_frozen && !@attributes.frozen?) || !noop_if_frozen)
           @_disable_counter_cache = !paranoia_destroyed?
-          write_attribute paranoia_column, paranoia_sentinel_value
+          write_attribute paranoia_column, paranoia_sentinel_values.first
           update_columns(paranoia_restore_attributes)
           each_counter_cached_associations do |association|
             if send(association.reflection.name)
@@ -141,7 +151,7 @@ module Paranoia
   end
 
   def paranoia_destroyed?
-    paranoia_column_value != paranoia_sentinel_value
+    !paranoia_sentinel_values.include?(paranoia_column_value)
   end
   alias :deleted? :paranoia_destroyed?
 
@@ -180,7 +190,7 @@ module Paranoia
 
   def paranoia_restore_attributes
     {
-      paranoia_column => paranoia_sentinel_value
+      paranoia_column => paranoia_sentinel_values.first
     }.merge(timestamp_attributes_with_current_time)
   end
 
@@ -320,13 +330,13 @@ module ActiveRecord
       def build_relation(klass, *args)
         relation = super
         return relation unless klass.respond_to?(:paranoia_column)
-        # TODO: handle nil here
-        arel_paranoia_scope = klass.arel_table[klass.paranoia_column].eq(klass.paranoia_sentinel_values)
-        if ActiveRecord::VERSION::STRING >= "5.0"
-          relation.where(arel_paranoia_scope)
-        else
-          relation.and(arel_paranoia_scope)
-        end
+
+        return relation.where(klass.paranoia_column => klass.paranoia_sentinel_values)
+        # if ActiveRecord::VERSION::STRING >= "5.0"
+        #   relation.where(arel_paranoia_scope)
+        # else
+        #   relation.and(arel_paranoia_scope)
+        # end
       end
     end
 
