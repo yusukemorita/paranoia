@@ -33,13 +33,13 @@ class ParanoiaCustomTest < test_framework
 
     # test
     deleted_at_nil = ParanoidModelWithMultipleSentinelValues.new(deleted_at: nil)
-    assert_equal false, deleted_at_nil.destroyed?
+    assert_equal false, deleted_at_nil.paranoia_destroyed?
  
     deleted_at_zero = ParanoidModelWithMultipleSentinelValues.new(deleted_at: DateTime.new(0).utc)
-    assert_equal false, deleted_at_zero.destroyed?
+    assert_equal false, deleted_at_zero.paranoia_destroyed?
 
-    deleted_at_now = ParanoidModelWithMultipleSentinelValues.new(deleted_at: DateTime.now)
-    assert_equal true, deleted_at_zero.destroyed?
+    deleted_at_other = ParanoidModelWithMultipleSentinelValues.new(deleted_at: DateTime.new(2024,1,1))
+    assert_equal true, deleted_at_other.paranoia_destroyed?
   end
 end
 
