@@ -347,7 +347,7 @@ class ParanoiaTest < test_framework
   end
 
   def test_default_sentinel_value
-    assert_nil ParanoidModel.paranoia_sentinel_value
+    assert_equal [nil], ParanoidModel.paranoia_sentinel_values
   end
 
   def test_without_default_scope_option
@@ -1406,7 +1406,7 @@ class CustomColumnModel < ActiveRecord::Base
 end
 
 class CustomSentinelModel < ActiveRecord::Base
-  acts_as_paranoid sentinel_value: DateTime.new(0)
+  acts_as_paranoid sentinel_values: [DateTime.new(0)]
 end
 
 class WithoutDefaultScopeModel < ActiveRecord::Base
@@ -1415,7 +1415,7 @@ end
 
 
 class ActiveColumnModel < ActiveRecord::Base
-  acts_as_paranoid column: :active, sentinel_value: true
+  acts_as_paranoid column: :active, sentinel_values: [true]
 
   belongs_to :paranoid_model
 
@@ -1436,7 +1436,7 @@ end
 
 class ActiveColumnModelWithUniquenessValidation < ActiveRecord::Base
   validates :name, :uniqueness => true
-  acts_as_paranoid column: :active, sentinel_value: true
+  acts_as_paranoid column: :active, sentinel_values: [true]
 
   def paranoia_restore_attributes
     {
@@ -1455,7 +1455,7 @@ end
 
 class ActiveColumnModelWithHasManyRelationship < ActiveRecord::Base
   has_many :paranoid_model_with_belongs_to_active_column_model_with_has_many_relationships
-  acts_as_paranoid column: :active, sentinel_value: true
+  acts_as_paranoid column: :active, sentinel_values: [true]
 
   def paranoia_restore_attributes
     {
