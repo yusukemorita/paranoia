@@ -32,7 +32,8 @@ module Paranoia
     end
 
     def only_deleted
-      if paranoia_sentinel_value.nil?
+      # TODO: handle nil here
+      if paranoia_sentinel_values.include?(nil)
         return with_deleted.where.not(paranoia_column => paranoia_sentinel_value)
       end
       # if paranoia_sentinel_value is not null, then it is possible that
@@ -253,12 +254,15 @@ ActiveSupport.on_load(:active_record) do
       alias_method :destroy_without_paranoia, :destroy
 
       include Paranoia
-      class_attribute :paranoia_column, :paranoia_sentinel_value
+      class_attribute :paranoia_column, :paranoia_sentinel_values
 
       self.paranoia_column = (options[:column] || :deleted_at).to_s
-      self.paranoia_sentinel_value = options.fetch(:sentinel_value) { Paranoia.default_sentinel_value }
+      self.paranoia_sentinel_values = options.fetch(:sentinel_values) { [Paranoia.default_sentinel_value] }
+
+      # scope for querying records that are NOT soft deleted
       def self.paranoia_scope
-        where(paranoia_column => paranoia_sentinel_value)
+        # TODO: Do we need to handle nil here?
+        where(paranoia_column => paranoia_sentinel_values)
       end
       class << self; alias_method :without_deleted, :paranoia_scope end
 
@@ -298,8 +302,8 @@ ActiveSupport.on_load(:active_record) do
       send(paranoia_column)
     end
 
-    def paranoia_sentinel_value
-      self.class.paranoia_sentinel_value
+    def paranoia_sentinel_values
+      self.class.paranoia_sentinel_values
     end
 
     def deletion_time
@@ -316,7 +320,8 @@ module ActiveRecord
       def build_relation(klass, *args)
         relation = super
         return relation unless klass.respond_to?(:paranoia_column)
-        arel_paranoia_scope = klass.arel_table[klass.paranoia_column].eq(klass.paranoia_sentinel_value)
+        # TODO: handle nil here
+        arel_paranoia_scope = klass.arel_table[klass.paranoia_column].eq(klass.paranoia_sentinel_values)
         if ActiveRecord::VERSION::STRING >= "5.0"
           relation.where(arel_paranoia_scope)
         else
