@@ -271,7 +271,6 @@ ActiveSupport.on_load(:active_record) do
 
       # scope for querying records that are NOT soft deleted
       def self.paranoia_scope
-        # TODO: Do we need to handle nil here?
         where(paranoia_column => paranoia_sentinel_values)
       end
       class << self; alias_method :without_deleted, :paranoia_scope end
