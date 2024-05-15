@@ -1,3 +1,23 @@
+# このrepositoryの存在意義
+
+TODO
+
+# 開発
+
+以下の手順で開発環境が構築できる。
+
+1. `.devcontainer/devontainer.env`に必要な環境変数を入力する（`.devcontainer/devontainer.env.sample`を参考にする）
+2. devcontainerでリポジトリを開く
+3. `bundle install` 
+
+# デプロイ
+
+TODO
+
+---
+
+以下はparanoiaに元々存在していたreadmeの内容です。
+
 [![Gem Version](https://badge.fury.io/rb/paranoia.svg)](https://badge.fury.io/rb/paranoia)
 [![build](https://github.com/rubysherpas/paranoia/actions/workflows/build.yml/badge.svg)](https://github.com/rubysherpas/paranoia/actions/workflows/build.yml)
 
