@@ -33,25 +33,18 @@ module Paranoia
 
     # TODO: test properly
     def only_deleted
-      # CASE 1. when `paranoia_sentinel_values` is only nil 
-      if paranoia_sentinel_values.length == 1 && paranoia_sentinel_values.first.nil?
-        return with_deleted.where.not(paranoia_column => nil)
-      end
-
-      # CASE 2. when there are multiple `paranoia_sentinel_values`, of which one is nil 
+      # CASE 1. when `paranoia_sentinel_values` includes nil
       if paranoia_sentinel_values.include?(nil)
-        # TODO
         return with_deleted.where.not(paranoia_column => paranoia_sentinel_values)
       end
 
-      # CASE 3. when `paranoia_sentinel_values` does not include nil 
+      # CASE 2. when `paranoia_sentinel_values` does not include nil
       # if paranoia_sentinel_values does not include null, then it is possible that
       # some deleted rows will hold a null value in the paranoia column
       # these will not match != sentinel value because "NULL != value" is
       # NULL under the sql standard
       # Scoping with the table_name is mandatory to avoid ambiguous errors when joining tables.
       scoped_quoted_paranoia_column = "#{connection.quote_table_name(self.table_name)}.#{connection.quote_column_name(paranoia_column)}"
-      # TODO: compare other values as well
       with_deleted.where("#{scoped_quoted_paranoia_column} IS NULL OR #{scoped_quoted_paranoia_column} NOT IN (?)", paranoia_sentinel_values)
     end
     alias_method :deleted, :only_deleted
