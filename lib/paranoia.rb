@@ -330,13 +330,12 @@ module ActiveRecord
       def build_relation(klass, *args)
         relation = super
         return relation unless klass.respond_to?(:paranoia_column)
-
-        return relation.where(klass.paranoia_column => klass.paranoia_sentinel_values)
-        # if ActiveRecord::VERSION::STRING >= "5.0"
-        #   relation.where(arel_paranoia_scope)
-        # else
-        #   relation.and(arel_paranoia_scope)
-        # end
+        arel_paranoia_scope = klass.arel_table[klass.paranoia_column].in(klass.paranoia_sentinel_values)
+        if ActiveRecord::VERSION::STRING >= "5.0"
+          relation.where(arel_paranoia_scope)
+        else
+          relation.and(arel_paranoia_scope)
+        end
       end
     end
 
